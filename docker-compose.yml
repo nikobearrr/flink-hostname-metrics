@@ -1,0 +1,41 @@
+version: "3.5"
+services:
+  jobmanager:
+    image: flink:1.11.2-scala_2.12
+    hostname: "jobmanager"
+    command: jobmanager
+    ports:
+      - "8081:8081"
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=jobmanager
+      - |
+        FLINK_PROPERTIES=
+        metrics.reporter.grph.factory.class: org.apache.flink.metrics.graphite.GraphiteReporterFactory
+        metrics.reporter.grph.host: graphite
+        metrics.reporter.grph.port: 2003
+        metrics.reporter.grph.protocol: TCP
+        metrics.reporter.grph.interval: 5 SECONDS
+
+  taskmanager01:
+    image: flink:1.11.2-scala_2.12
+    hostname: "taskmanager-node01"
+    command: taskmanager
+    scale: 1
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 2
+
+        metrics.reporter.grph.factory.class: org.apache.flink.metrics.graphite.GraphiteReporterFactory
+        metrics.reporter.grph.host: graphite
+        metrics.reporter.grph.port: 2003
+        metrics.reporter.grph.protocol: TCP
+        metrics.reporter.grph.interval: 5 SECONDS
+
+  graphite:
+    image: graphiteapp/graphite-statsd:1.1.7-7-pypy
+    ports:
+      - "8082:80"
+    logging:
+      driver: none
